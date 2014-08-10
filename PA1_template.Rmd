@@ -1,20 +1,149 @@
-# Reproducible Research: Peer Assessment 1
+---
+title: "PA1_template"
+output: html_document
+---
 
+## Reproducible reserach Assignment one
 
-## Loading and preprocessing the data
+### 1. Loading and preprocessing data (creating a subset removing NA)
 
+```{r echo=TRUE}
+file_act <- "activity.csv"
+data_act  <- read.csv(file_act)
+str(data_act)
+data_act1 <- na.omit(data_act)  ## subset after removing NA data 
+str(data_act1)   ## checking the structure of the data
+```
 
+### 2. Ignoring the missing values in the data set calculating the mean total number of steps taken per day
 
-## What is mean total number of steps taken per day?
+```{r echo=TRUE}
+      ##  (a) Plot a histogram of the total number of steps taken each day
+sub1 <- NULL
+sub1 <- data.frame(sub1)
+sub1 <- data_act1[,c(1,2)]
+head(sub1)
+tail(sub1)
+aggr1 <- aggregate(.~date, FUN=sum, sub1)
 
+hist(as.numeric(aggr1$steps), col="red", breaks=50,
+     main= "Figure 1. Total number of steps taken each day",
+     xlab= "Total number of steps")
 
+     ## (b) Calculate and report the mean and median of total number of
+     ##     steps taken per day
+stp_mean <- mean(aggr1$steps)
+stp_mean
+stp_median <- median(aggr1$steps)
+stp_median
+```
+The mean of the total number of steps taken per day is `r round(stp_mean)`    and the median of the total number os steps taken per day is `r round(stp_median)`.
 
-## What is the average daily activity pattern?
+### 3. Ignoring the missing values in the data set, and checking the average daily activity pattern
 
+```{r echo=TRUE}
+     ## (a) plot time series polot (type='l') of the 5-min interval (x-axis)
+     ##     and the averages number of steps taken, averaged across all days 
+     ##     (y-axis)
+Sub1 <- NULL
+Sub1 <- data.frame(Sub1)
+Sub1 <- data_act1[,c(1,3)]  ## select the steps and interval data
+Aggr1 <- aggregate(.~interval, FUN=mean, Sub1)  ## calculate mean
 
+with(Aggr1,                 ## plot the time series average data
+     plot(interval, steps,
+          panel.first = grid(),
+          type = 'l', col = "dark red",
+          ylab = "Steps",
+          xlab = "Intervals",
+          main = "Figure 2. Average number of steps for each 5-min interval"))
+```
 
-## Imputing missing values
+```{r echo=TRUE}
+     ## (b) Determine the 5-min interval with the max number of steps
+mxStp <- max(Aggr1$steps)
+intvMaxStep <- subset(Aggr1, steps==mxStp)$interval
+intvMaxStep
+```
+The interval with maximum number of steps (average over all the days) is interval `r intvMaxStep`.
 
+### 4. Imputing the missing values and redoing the previous analysis
 
+```{r echo=TRUE}
+     ## (a) Calculate and report the total number of missing values
+data_act2 <- subset(data_act, is.na(steps)==TRUE)  ## subset with NA data
+ttlNAobs <- nrow(data_act2)   ## total no of observations with missing values 
+ttlNAobs
+```
+The total number of observations with missing values for the steps column is `r ttlNAobs`.
 
-## Are there differences in activity patterns between weekdays and weekends?
+To substitute the data for missing values the strategy adopted here is to use the mean for that interval averaged over all the days for which data is available.
+
+```{r echo=TRUE}
+     ## (b) Replace the missing values with mean of the interval
+for(i in 1:ttlNAobs) {      ## Aggr1 contains the mean for each interval
+  intPl <- data_act2[i,3]   ## get the interval data & set the corresponding mean
+  data_act2[i,1] <- round(subset(Aggr1, interval==intPl)$steps)
+  }
+str(data_act2)    ## check the structure
+```
+ 
+```{r echo=TRUE}
+     ## (c) Create a new data set with the missing data filled in
+new_dat <- rbind(data_act1, data_act2)
+str(new_dat)      ## check the structure of the new data frame
+```
+
+```{r echo=TRUE}
+     ## (d) Make a histogram of the total number of steps taken each day
+sub2 <- NULL
+sub2 <- data.frame(sub2)
+sub2 <- new_dat[,c(1,2)]
+aggr1 <- aggregate(.~date, FUN=sum, sub2)
+
+hist(aggr1$steps, col="red", breaks=50,
+     main= "Figure 3. Total number of steps taken each day
+            (with missing steps values imputed)",
+     xlab= "Total number of steps")
+
+     ## (e) Calculate and report the mean and median of total number of
+     ##     steps taken per day
+stn_mean <- mean(aggr1$steps)
+stn_median <- median(aggr1$steps)
+```
+Based on the imputed data the mean of the total number of steps taken per day is `r round(stn_mean)`    and the median of the total number os steps taken per day is `r round(stn_median)`. There is hardly any difference from the mean and median of the data set without the missing values.
+But comparing figure 1 with figure 3 we can observe that the frequency of cetaon intervals have increased, because we have substituted the missing values with the mean for that interval over all the days. There is hardly any change in the shape of the histogram for the two data sets.
+
+### 5. Finding the differences in activity patterns between weekdays and weekends
+ 
+```{r echo=TRUE}
+     ## Create a new factor variable in the dataset with two levels - "weekday"
+     ## and "weekend" indicating whether a given date is weekday or weekend day
+Sys.setlocale("LC_TIME","English")  ## changing the locale to English
+
+for(i in 1:ttlNAobs) {
+  dt1 <- weekdays(as.Date(new_dat[i,2]), abbreviate=TRUE) ## get the day of the week
+  if(dt1 == "Sat" | dt1 == "Sun")
+    new_dat$wkday[i] <- "weekend"
+  else
+    new_dat$wkday[i] <- "weekday"
+  }
+new_dat$wkday <- as.factor(new_dat$wkday)
+str(new_dat)  ## checking the structure of the new data set
+
+  ## calculate the mean of each interval and weekdays level
+Aggr3 <- aggregate(.~interval+wkday, FUN=mean, new_dat)
+
+  ## make panel plot of the above data
+library(lattice)
+xyplot(steps~interval|wkday,
+       grid = TRUE,
+       type = "l", col = "dark red",
+       ylab = "Number of steps",
+       xlab = "Interval",
+       data = Aggr3,
+       main = "Figure 4. Activity pattern on weekdays vs. weekends",
+       layout = c(1,2))
+```
+
+WE can observe that there is a distinct difference between the pattern for weekdays in comparison to that for weekends. For weekdays we can see that activity peaks around midday, wheras during weekends we see spikes of activities at various times of the day, not just one during midday.
