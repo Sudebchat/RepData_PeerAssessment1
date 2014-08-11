@@ -3,7 +3,7 @@ title: "PA1_template"
 output: html_document
 ---
 
-## Reproducible reserach Assignment one
+## Reproducible research assignment one
 
 ### 1. Loading and preprocessing data (creating a subset removing NA)
 
@@ -21,9 +21,8 @@ str(data_act1)   ## checking the structure of the data
       ##  (a) Plot a histogram of the total number of steps taken each day
 sub1 <- NULL
 sub1 <- data.frame(sub1)
-sub1 <- data_act1[,c(1,2)]
-head(sub1)
-tail(sub1)
+sub1 <- data_act1[,c(1,2)]    ## Date and steps data only
+
 aggr1 <- aggregate(.~date, FUN=sum, sub1)
 
 hist(as.numeric(aggr1$steps), col="red", breaks=50,
@@ -33,13 +32,12 @@ hist(as.numeric(aggr1$steps), col="red", breaks=50,
      ## (b) Calculate and report the mean and median of total number of
      ##     steps taken per day
 stp_mean <- mean(aggr1$steps)
-stp_mean
 stp_median <- median(aggr1$steps)
-stp_median
 ```
-The mean of the total number of steps taken per day is `r round(stp_mean)`    and the median of the total number os steps taken per day is `r round(stp_median)`.
 
-### 3. Ignoring the missing values in the data set, and checking the average daily activity pattern
+The mean of the total number of steps taken per day is `r round(stp_mean)`    and the median of the total number of steps taken per day is `r round(stp_median)`.
+
+### 3. Ignoring the missing values in the data set checking the average daily activity pattern
 
 ```{r echo=TRUE}
      ## (a) plot time series polot (type='l') of the 5-min interval (x-axis)
@@ -59,11 +57,12 @@ with(Aggr1,                 ## plot the time series average data
           main = "Figure 2. Average number of steps for each 5-min interval"))
 ```
 
+Note that the interval scale in the figure above shows the starting minute (2400 minutes a day) for the particular interval. So the value 1000 on this scale represents an interval between 1000 and `r 1000+5` minutes and so on.
+
 ```{r echo=TRUE}
      ## (b) Determine the 5-min interval with the max number of steps
 mxStp <- max(Aggr1$steps)
 intvMaxStep <- subset(Aggr1, steps==mxStp)$interval
-intvMaxStep
 ```
 The interval with maximum number of steps (average over all the days) is interval `r intvMaxStep`.
 
@@ -73,8 +72,8 @@ The interval with maximum number of steps (average over all the days) is interva
      ## (a) Calculate and report the total number of missing values
 data_act2 <- subset(data_act, is.na(steps)==TRUE)  ## subset with NA data
 ttlNAobs <- nrow(data_act2)   ## total no of observations with missing values 
-ttlNAobs
 ```
+
 The total number of observations with missing values for the steps column is `r ttlNAobs`.
 
 To substitute the data for missing values the strategy adopted here is to use the mean for that interval averaged over all the days for which data is available.
@@ -111,8 +110,9 @@ hist(aggr1$steps, col="red", breaks=50,
 stn_mean <- mean(aggr1$steps)
 stn_median <- median(aggr1$steps)
 ```
-Based on the imputed data the mean of the total number of steps taken per day is `r round(stn_mean)`    and the median of the total number os steps taken per day is `r round(stn_median)`. There is hardly any difference from the mean and median of the data set without the missing values.
-But comparing figure 1 with figure 3 we can observe that the frequency of cetaon intervals have increased, because we have substituted the missing values with the mean for that interval over all the days. There is hardly any change in the shape of the histogram for the two data sets.
+Based on the imputed data the mean of the total number of steps taken per day is `r round(stn_mean)`    and the median of the total number of steps taken per day is `r round(stn_median)`. There is hardly any difference from the mean and median of the data set without the missing values.
+
+But comparing figure 1 with figure 3 we can observe that the frequency of certain ranges (bins) have increased, because we have substituted the missing values with the mean for that interval over all the days. There is hardly any change in the shape of the histogram for the two data sets.
 
 ### 5. Finding the differences in activity patterns between weekdays and weekends
  
@@ -146,4 +146,4 @@ xyplot(steps~interval|wkday,
        layout = c(1,2))
 ```
 
-WE can observe that there is a distinct difference between the pattern for weekdays in comparison to that for weekends. For weekdays we can see that activity peaks around midday, wheras during weekends we see spikes of activities at various times of the day, not just one during midday.
+The above figure shows that there is a distinct difference between the pattern for weekdays in comparison to that for weekends. For weekdays it is observed that activity peaks around midday (around 2PM), wheras during weekends spikes of activities at various times of the day are observed, not just one during midday.
